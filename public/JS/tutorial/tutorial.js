@@ -97,14 +97,15 @@ export function createTutorial({
 
   function getTextForStep(step) {
     const { currentLang } = getState();
-    const lang = currentLang === "en" ? "en" : "fr";
+    const lang = UI_STRINGS[currentLang]?.tutorial ? currentLang : "fr";
     return UI_STRINGS[lang]?.tutorial?.[`step${step}`] || {};
   }
 
   function setContent(step, showSkip = step === 1) {
     const t = getTextForStep(step);
     const { currentLang } = getState();
-    const lang = currentLang === "en" ? "en" : "fr";
+    const lang = UI_STRINGS[currentLang]?.tutorial ? currentLang : "fr";
+    const tutorialStrings = UI_STRINGS[lang].tutorial;
     const titleEl = document.getElementById("tutorial-title");
     const bodyEl = document.getElementById("tutorial-body");
     const subtitleEl = document.getElementById("tutorial-subtitle");
@@ -124,8 +125,11 @@ export function createTutorial({
       bodyEl2.textContent = t.body2 || "";
       bodyEl2.hidden = !t.body2;
     }
-    if (nextBtn) nextBtn.textContent = t.nextLabel || (lang === "en" ? "Next" : "Suivant");
-    if (skipBtn) skipBtn.style.display = showSkip ? "inline-block" : "none";
+    if (nextBtn) nextBtn.textContent = t.nextLabel || tutorialStrings.step2.nextLabel;
+    if (skipBtn) {
+      skipBtn.textContent = tutorialStrings.skipLabel;
+      skipBtn.style.display = showSkip ? "inline-block" : "none";
+    }
   }
 
   function getStepTarget(step) {

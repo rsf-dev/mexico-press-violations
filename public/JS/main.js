@@ -2133,6 +2133,11 @@ function getInitialLang() {
   return normalizeLang(params.get("lang"));
 }
 
+function getNextTutorialLanguage(lang = currentLang) {
+  const languages = REGLAGES.projet.langues;
+  return languages[(languages.indexOf(lang) + 1) % languages.length];
+}
+
 function syncLanguageControls(lang) {
   const activeLang = normalizeLang(lang);
   document.documentElement.lang = activeLang;
@@ -2180,7 +2185,7 @@ async function setLanguage(lang, { updateUrl = true } = {}) {
   updatePlaybackDateUI();
 
   afficherEvenements();
-  applyStaticTextsForLang(nextLang);
+  applyStaticTextsForLang(nextLang, { tutorialNextLang: getNextTutorialLanguage(nextLang) });
   syncLanguageControls(nextLang);
   if (updateUrl) updateLangUrl(nextLang);
   updateOblastPanel(selectedOblast);
@@ -2263,7 +2268,7 @@ async function zoomToOblast(oblastName) {
 async function initMap() {
   setLoadingProgress(10);
   currentLang = getInitialLang();
-  applyStaticTextsForLang(currentLang);
+  applyStaticTextsForLang(currentLang, { tutorialNextLang: getNextTutorialLanguage(currentLang) });
   syncLanguageControls(currentLang);
 
   map = L.map("map", {
@@ -2446,7 +2451,7 @@ onDomReady(() => {
 
   if (tutLangBtn) {
     tutLangBtn.addEventListener("click", async () => {
-      const newLang = (currentLang === "en") ? "fr" : "en";
+      const newLang = getNextTutorialLanguage();
       await setLanguage(newLang);
       if (Tutorial.isActive() && Tutorial.getStep() > 0) Tutorial.goToStep(Tutorial.getStep());
     });

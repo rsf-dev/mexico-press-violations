@@ -135,7 +135,12 @@ export const REGLAGES = {
     statistiques: { enabled: true },
     chronologie: { enabled: true },
     lecture: { enabled: true },
-    tutoriel: { enabled: true, demarrageAutomatique: true },
+    tutoriel: {
+      enabled: true, // Conserve le bouton Tutoriel dans le menu.
+      // false : ne pas ouvrir le tutoriel à l'arrivée sur la page.
+      // true : l'ouvrir après le chargement, uniquement s'il n'a pas déjà été vu.
+      demarrageAutomatique: false
+    },
     langues: { enabled: true },
     rsfCartographie: { enabled: true },
     contour: { enabled: true },

@@ -4,7 +4,7 @@
 export const UI_STRINGS = {
   fr: {
     loader: {
-      subtitle: "Monitoring des assassinats contre les journalistes au Mexique",
+      subtitle: "Monitoring des meurtres de journalistes au Mexique",
       subtext: "Chargement de la carte...",
       error: "Impossible de charger la carte. Réessayez.",
       retry: "Réessayer"
@@ -13,8 +13,8 @@ export const UI_STRINGS = {
       step1: {
         title: "Bienvenue",
         subtitle: "Information importante",
-        body: "Cette carte recense les assassinats de journalistes commis au Mexique depuis 2006. Si vous êtes sur téléphone mobile, mettez cette carte en format horizontal. Vous pouvez changer la langue (anglais, français), et voir comment la parcourir en cliquant sur 'Montrez-moi'.",
-        body2: "Cette carte et les données qui lui sont attachées sont issues d'un monitoring de RSF selon son mandat et sont mises à jour en temps réel. RSF collecte ces informations grâce à une veille et au partage d'informations de ses partenaires en Ukraine",
+        body: "Cette carte recense les meurtres de journalistes commis au Mexique depuis 2006. Si vous êtes sur téléphone mobile, mettez cette carte en format horizontal. Vous pouvez changer la langue (anglais, français, espagnol), et voir comment la parcourir en cliquant sur 'Montrez-moi'.",
+        body2: "Cette carte et les données qui lui sont attachées sont issues d'un monitoring de RSF selon son mandat et sont mises à jour en temps réel. RSF collecte ces informations grâce à une veille et au partage d'informations de ses partenaires au Mexique.",
         nextLabel: "Montrez-moi"
       },
       step2: {
@@ -68,10 +68,10 @@ export const UI_STRINGS = {
       clearFilters: "Supprimer les filtres",
       filtersLabel: "Filtres",
       notesSection: "Notes",
-      creditsTitle: "Credits",
+      creditsTitle: "Crédits",
       eventFooterNote: "<b>Note :</b> données collectées et vérifiées par RSF et issues de son baromètre. <br><b> Mandat de RSF </b>: Les journalistes auxquels il est fait référence ont été tués dans l'exercice de leur profession, ou en raison de celle-ci.",
-      floatingTitle: "Monitoring des assassinats contre les journalistes au Mexique",
-      floatingSubtitle: "Entre 2006 et 2026, 167 journalistes ont été tués au Mexique.",
+      floatingTitle: "Monitoring des meurtres de journalistes au Mexique",
+      floatingSubtitle: "Entre 2006 et 2026, 169 journalistes ont été tués au Mexique.",
       floatingSubtitleBase: ({ startDate, endDate, total }) =>
         `Entre ${startDate} et ${endDate}, ${total} journalistes ont été tués au Mexique.`,
       supplementSummaries: {
@@ -101,7 +101,7 @@ export const UI_STRINGS = {
       oblastTotalLabel: "Total d'evenements :",
       oblastCitiesLabel: "Villes concernees :",
       tutoButton: "Tutoriel",
-      tutorialLangButton: "Switch to English",
+      tutorialLangButton: "Voir en français",
       menuLanguage: "Langue",
       menuEvents: "Liste des cas",
       menuRegions: "Carte Choropleth",
@@ -109,7 +109,7 @@ export const UI_STRINGS = {
       menuTimeline: "Chronologie",
       menuOpen: "Ouvrir le menu",
       rsfCartography: "RSF cartographie",
-      bottomChartTitle: "Evolution des assassinats",
+      bottomChartTitle: "Evolution des meurtres de journalistes",
       oblastsBtn: "États",
       villesBtn: "Villes",
       footerCredits: `
@@ -148,7 +148,7 @@ export const UI_STRINGS = {
       step1: {
         title: "Welcome",
         subtitle: "Important information",
-        body: "This map lists the assassinations of journalists committed in Mexico since 2006. If you are on a mobile phone, please put this map in landscape format. You can change the language (English, French), and see how to navigate it by clicking on 'Show me'.",
+        body: "This map lists the assassinations of journalists committed in Mexico since 2006. If you are on a mobile phone, please put this map in landscape format. You can change the language (English, French, Spanish), and see how to navigate it by clicking on 'Show me'.",
         body2: "This map and the data associated with it come from an RSF monitoring exercise in accordance with its mandate and are updated in real time. RSF collects this information through monitoring and sharing information with its partners in Mexico",
         nextLabel: "Show me"
       },
@@ -236,7 +236,7 @@ export const UI_STRINGS = {
       oblastTotalLabel: "Total number of events:",
       oblastCitiesLabel: "Cities involved:",
       tutoButton: "Tutorial",
-      tutorialLangButton: "Voir en Francais",
+      tutorialLangButton: "Switch to English",
       menuLanguage: "Language",
       menuEvents: "Case list",
       menuRegions: "Choropleth map",
@@ -282,54 +282,53 @@ UI_STRINGS.es = {
     retry: "Reintentar"
   },
   tutorial: {
-    ...UI_STRINGS.fr.tutorial,
     step1: {
       title: "Bienvenido",
-      body: "Este mapa recopila los asesinatos de periodistas cometidos en México desde 2006. Si estás en un teléfono móvil, pon este mapa en formato horizontal. Puedes cambiar el idioma (inglés, francés) y ver cómo recorrerlo haciendo clic en \"Mostrarme\".",
-      subtitle: "Informacion importante",
-      body2: "Este mapa y los datos que contiene provienen del monitoreo de RSF de acuerdo con su mandato y se actualizan en tiempo real. RSF recopila esta información gracias a la vigilancia y al intercambio de información de sus socios en México",
-      nextLabel: "Mostrarme"
+      subtitle: "Información importante",
+      body: "Este mapa recoge los asesinatos de periodistas cometidos en México desde 2006. Si utiliza un teléfono móvil, gírelo para ver el mapa en formato horizontal. Puede cambiar el idioma (inglés, francés o español) y descubrir cómo recorrer el mapa haciendo clic en «Muéstreme».",
+      body2: "Este mapa y sus datos proceden del monitoreo realizado por RSF conforme a su mandato y se actualizan en tiempo real. RSF recopila esta información mediante un seguimiento continuo y el intercambio de información con sus socios en México.",
+      nextLabel: "Muéstreme"
     },
     step2: {
-      title: "Filtros de la carte",
-      body: "El componente del título agrupa los filtros principales : region, ciudad, fechas e informacion complementaria.",
-      subtitle: "Estados, ciudades, fechas e informacion",
-      body2: "El botón \"Eliminar filtros\" restaura la vista completa y restablece las categorías a su estado inicial.",
+      title: "Filtros del mapa",
+      subtitle: "Estados, ciudades, fechas e información",
+      body: "El panel del título reúne los filtros principales: estado, ciudad, fechas e información complementaria.",
+      body2: "El botón «Borrar filtros» restablece la vista completa del mapa y devuelve las categorías a su estado inicial.",
       nextLabel: "Siguiente"
     },
     step3: {
       title: "Menú de navegación",
-      body: "El menú desplegable reúne el idioma, el tutorial, la lista de casos, las estadísticas, el modo mapa de densidad y la cronología.",
+      body: "El menú desplegable reúne los controles de idioma, el tutorial, la lista de casos, las estadísticas, el mapa coroplético y la cronología.",
       subtitle: "Paneles",
-      body2: "Haga clic de nuevo en el botón del menú para cerrarlo",
+      body2: "",
       nextLabel: "Siguiente"
     },
     step4: {
       title: "Lista de casos",
-      body: "La lista de casos permite recorrer los eventos documentados.",
+      body: "La lista de casos permite consultar los hechos documentados.",
       subtitle: "Desde la lista",
-      body2: "Haga clic en un caso para centrar el mapa en su ubicación. El botón \"Cerrar\" en la parte superior del panel cierra la lista.",
+      body2: "Haga clic en un caso para centrar el mapa en su ubicación. El botón «Cerrar» cierra el panel.",
       nextLabel: "Siguiente"
     },
     step5: {
       title: "Reproducción y cronología",
-      body: "El módulo de reproducción, situado en el componente del título, reproduce los casos en orden cronológico.",
+      body: "El módulo de reproducción muestra los casos en orden cronológico.",
       subtitle: "Zoom de la cronología",
-      body2: "La cronología muestra los casos por año. Haga clic en un año para mostrar el botón + y ampliar sus días; borrar los filtros restaura la vista anual.",
+      body2: "La cronología muestra los casos por año. Haga clic en un año para mostrar el botón + y ampliar la vista hasta sus días. Al borrar los filtros, se restablece la vista anual.",
       nextLabel: "Siguiente"
     },
     step6: {
       title: "Estadísticas",
       body: "El panel de estadísticas muestra los contadores y gráficos de los estados y ciudades disponibles.",
       subtitle: "Estados y ciudades",
-      body2: "Los elementos de los gráficos permiten filtrar por region o ciudad.",
+      body2: "Los elementos de los gráficos permiten filtrar por estado o ciudad.",
       nextLabel: "Siguiente"
     },
     step7: {
-      title: "Modo mapa de densidad",
-      body: "El modo mapa de densidad permite visualizar los datos de manera por estado. Vuelva a hacer clic en el botón para desactivarlo.",
+      title: "Mapa coroplético",
+      body: "El mapa coroplético permite visualizar los datos por estado.",
       subtitle: "Datos por estado",
-      body2: "Haga clic en un estado para mostrar los datos correspondientes. Los filtros y la fecha actualizan la visualización del mapa.",
+      body2: "Haga clic en un estado para mostrar los datos correspondientes. Los filtros y las fechas actualizan la visualización del mapa.",
       nextLabel: "Terminar"
     },
     skipLabel: "Omitir"
@@ -374,10 +373,10 @@ UI_STRINGS.es = {
     oblastTotalLabel: "Total de casos:",
     oblastCitiesLabel: "Ciudades afectadas:",
     tutoButton: "Tutorial",
-    tutorialLangButton: "Voir en Francais",
+    tutorialLangButton: "Ver en español",
     menuLanguage: "Idioma",
     menuEvents: "Lista de casos",
-    menuRegions: "Mapa de densidad",
+    menuRegions: "Mapa coroplético",
     menuStats: "Estadisticas",
     menuTimeline: "Cronologia",
     menuOpen: "Abrir menu",
@@ -411,7 +410,7 @@ UI_STRINGS.es = {
 
 export const TYPE_LABELS = {
   fr: {
-    "Assassinat": "Assassinat"
+    "Assassinat": "Meurtre"
   },
   en: {
     "Assassinat": "Killing"
@@ -426,7 +425,7 @@ export function getDisplayLabelForType(type, lang) {
   return dict[type] || type;
 }
 
-export function applyStaticTextsForLang(lang) {
+export function applyStaticTextsForLang(lang, { tutorialNextLang } = {}) {
   const strings = UI_STRINGS[lang] || UI_STRINGS.fr;
   const ui = strings.ui;
 
@@ -497,7 +496,7 @@ export function applyStaticTextsForLang(lang) {
   if (skipBtn) skipBtn.textContent = strings.tutorial.skipLabel;
 
   const tutLangBtn = document.getElementById("tutorial-lang-btn");
-  if (tutLangBtn) tutLangBtn.textContent = ui.tutorialLangButton;
+  if (tutLangBtn) tutLangBtn.textContent = (UI_STRINGS[tutorialNextLang] || strings).ui.tutorialLangButton;
 
   const loaderSubtitle = document.querySelector(".loading-subtitle");
   const loaderSubtext = document.querySelector(".loading-subtext");
