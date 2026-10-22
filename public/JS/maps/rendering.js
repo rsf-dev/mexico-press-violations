@@ -1,14 +1,52 @@
+export function validateBasemaps(fonds) {
+  if (!Array.isArray(fonds) || !fonds.length) throw new Error("Aucun fond de carte configuré.");
+  const ids = new Set();
+  for (const fond of fonds) {
+    if (!fond.id || ids.has(fond.id)) throw new Error("Identifiant de fond manquant ou dupliqué : " + fond.id);
+    ids.add(fond.id);
+    if (!["maplibre", "raster"].includes(fond.type) || !fond.url) throw new Error("Source de fond invalide : " + fond.id);
+    if (!["light", "dark"].includes(fond.theme)) throw new Error("Le thème du fond " + fond.id + " doit être light ou dark.");
+  }
+  const defaults = fonds.filter(fond => fond.actifParDefaut);
+  if (defaults.length !== 1) throw new Error("Un seul fond doit être actif par défaut.");
+  for (const lang of ["fr", "en", "es"]) {
+    const labels = fonds.map(fond => fond.labels?.[lang] || fond.labels?.fr || fond.id);
+    if (new Set(labels).size !== labels.length) throw new Error("Libellés de fonds dupliqués pour " + lang);
+  }
+  return defaults[0];
+}
+
+export function applyBasemapTheme(fond, { document: page = globalThis.document } = {}) {
+  const requested = typeof fond === "string" ? fond : fond?.theme;
+  const theme = requested === "dark" ? "dark" : "light";
+  page.body.classList.toggle("theme-dark", theme === "dark");
+  page.body.classList.toggle("theme-light", theme === "light");
+  page.body.classList.remove("dark-map-theme");
+  page.body.dataset.mapTheme = theme;
+  if (typeof fond === "object" && fond?.id) page.body.dataset.basemap = fond.id;
+  return theme;
+}
+
 export function createBasemapLayer(fond, { L, settings }) {
   const url = String(fond.url).replaceAll("{apiKey}", encodeURIComponent(settings.cleCarto || ""));
   const attribution = fond.attribution || settings.attribution;
   const options = { ...(fond.options || {}) };
-  if (fond.type !== "maplibre") return L.tileLayer(url, { attribution, ...options });
+  if (fond.type === "raster") {
+    return L.tileLayer(url, { maxZoom: settings.zoomMaximum, attribution, ...options });
+  }
   if (typeof L.maplibreGL !== "function") throw new Error("Le plugin MapLibre GL Leaflet est requis pour OpenFreeMap.");
   const layer = L.maplibreGL({
     style: url, attribution, interactive: false, updateInterval: 16, fadeDuration: 0, ...options
   });
   layer.getAttribution = () => attribution;
   return layer;
+}
+
+export function createBasemapControl({ L, map, entries, lang }) {
+  const layers = Object.fromEntries(entries.map(({ config, layer }) => [
+    config.labels?.[lang] || config.labels?.fr || config.id, layer
+  ]));
+  return L.control.layers(layers, null, { position: "bottomright" }).addTo(map);
 }
 
 export function waitForBasemapReady(layer, { timeoutMs = 30000 } = {}) {

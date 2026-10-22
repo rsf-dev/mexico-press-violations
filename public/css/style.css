@@ -2584,15 +2584,15 @@ body.theme-dark .header-legend-emprisonne-libere .header-legend-count {
 }
 
 body.theme-dark .marker-icon {
-  background: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 body.theme-dark .header-legend-icon {
-  background: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 body.theme-dark .event-icon {
-  background: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 body.theme-dark .credits-card {

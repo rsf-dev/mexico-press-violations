@@ -37,6 +37,8 @@ export const REGLAGES = {
       playback: "./playback/playback.js",
       i18n: "./i18n/i18n.js",
       tutorial: "./tutorial/tutorial.js",
+      menu: "./ui/menu.js",
+      nearbyNavigation: "./maps/nearbyNavigation.js",
       mapRendering: "./maps/rendering.js",
       geojsonLevels: "./maps/geojsonLevels.js"
     }
@@ -75,16 +77,117 @@ export const REGLAGES = {
     attribution: '<a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener noreferrer">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
     cleCarto: "",
     // "maplibre" : style vectoriel ; "raster" : tuiles image. Un seul actifParDefaut: true.
-    // Pour choisir une alternative au démarrage, décommenter sa ligne, mettre son actifParDefaut
-    // à true et celui du fond Clair à false.
+    // Pour changer le fond initial, mettre son actifParDefaut à true et les autres à false.
+    // theme : "light" ou "dark" ; une seule entrée actifParDefaut: true.
+    // maxNativeZoom évite de demander au fournisseur des tuiles inexistantes.
     fonds: [
-      // { id: "Clair", labels: { fr: "Clair", en: "Light", es: "Claro" }, type: "maplibre", url: "https://tiles.openfreemap.org/styles/positron", options: { attributionControl: false }, theme: "light", actifParDefaut: true },
-      // { id: "Sombre", labels: { fr: "Sombre", en: "Dark", es: "Oscuro" }, type: "maplibre", url: "https://tiles.openfreemap.org/styles/dark", options: { attributionControl: false }, theme: "dark" },
-      // Alternative colorée Liberty.
-      // { id: "Liberty", labels: { fr: "Liberty", en: "Liberty", es: "Liberty" }, type: "maplibre", url: "https://tiles.openfreemap.org/styles/liberty", options: { attributionControl: false }, theme: "light", actifParDefaut: true },
-      // Alternative claire Bright.
-      // { id: "Bright", labels: { fr: "Bright", en: "Bright", es: "Bright" }, type: "maplibre", url: "https://tiles.openfreemap.org/styles/bright", options: { attributionControl: false }, theme: "light", actifParDefaut: true },
-      { id: "Satellite", labels: { fr: "Satellite", en: "Satellite", es: "Satélite" }, type: "raster", url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", options: {}, theme: "bright", actifParDefaut: true, attribution: "Tiles &copy; Esri" }
+      {
+        id: "positron",
+        labels: {
+          fr: "Clair",
+          en: "Light",
+          es: "Claro"
+        },
+        type: "maplibre",
+        url: "https://tiles.openfreemap.org/styles/positron",
+        options: {
+          attributionControl: false
+        },
+        theme: "light",
+        actifParDefaut: false
+      },
+      {
+        id: "dark",
+        labels: {
+          fr: "Sombre",
+          en: "Dark",
+          es: "Oscuro"
+        },
+        type: "maplibre",
+        url: "https://tiles.openfreemap.org/styles/dark",
+        options: {
+          attributionControl: false
+        },
+        theme: "dark",
+        actifParDefaut: false
+      },
+      {
+        id: "fiord",
+        labels: {
+          fr: "Fiord",
+          en: "Fiord",
+          es: "Fiord"
+        },
+        type: "maplibre",
+        url: "https://tiles.openfreemap.org/styles/fiord",
+        options: {
+          attributionControl: false
+        },
+        theme: "dark",
+        actifParDefaut: false
+      },
+      {
+        id: "liberty",
+        labels: {
+          fr: "Liberty",
+          en: "Liberty",
+          es: "Liberty"
+        },
+        type: "maplibre",
+        url: "https://tiles.openfreemap.org/styles/liberty",
+        options: {
+          attributionControl: false
+        },
+        theme: "light",
+        actifParDefaut: false
+      },
+      {
+        id: "bright",
+        labels: {
+          fr: "Bright",
+          en: "Bright",
+          es: "Bright"
+        },
+        type: "maplibre",
+        url: "https://tiles.openfreemap.org/styles/bright",
+        options: {
+          attributionControl: false
+        },
+        theme: "light",
+        actifParDefaut: false
+      },
+      {
+        id: "satellite",
+        labels: {
+          fr: "Satellite",
+          en: "Satellite",
+          es: "Satélite"
+        },
+        type: "raster",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        options: {
+          maxNativeZoom: 23
+        },
+        theme: "light",
+        attribution: "Tiles &copy; Esri",
+        actifParDefaut: true
+      },
+      {
+        id: "relief",
+        labels: {
+          fr: "Relief",
+          en: "Relief",
+          es: "Relieve"
+        },
+        type: "raster",
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
+        options: {
+          maxNativeZoom: 13
+        },
+        theme: "light",
+        attribution: "Tiles &copy; Esri",
+        actifParDefaut: false
+      }
     ]
   },
 
@@ -131,6 +234,16 @@ export const REGLAGES = {
   },
 
   fonctionnalites: {
+    navigationProche: {
+      enabled: true, // Navigation vers le groupe ou événement hors écran le plus proche.
+      zoomMinimum: 11,
+      maximumVisibles: 1, // Afficher le bouton avec 0 ou 1 groupe/événement visible.
+      margeDesktop: 56, // Pixels ; le placement évite aussi les panneaux et commandes.
+      margeMobile: 20,
+      espacementComposants: 12,
+      seuilMobile: 768,
+      dureeDeplacement: 0.65 // Secondes ; le zoom final reste inchangé.
+    },
     listeCas: { enabled: true },
     statistiques: { enabled: true },
     chronologie: { enabled: true },

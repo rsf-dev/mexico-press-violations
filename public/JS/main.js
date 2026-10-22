@@ -20,6 +20,7 @@ async function importV(path) {
 
 const { REGLAGES, validerReglages } = await importV("./reglages.js");
 validerReglages(REGLAGES);
+const { initUtilityMenu } = await importV(REGLAGES.fichiers.modules.menu);
 const MODULES = REGLAGES.fichiers.modules;
 
 const [
@@ -34,7 +35,8 @@ const [
   tutorial,
   panelScroll,
   geojsonLevels,
-  mapRendering
+  mapRendering,
+  nearbyNavigation
 ] = await Promise.all([
   importV(MODULES.dates),
   importV(MODULES.strings),
@@ -47,7 +49,8 @@ const [
   importV(MODULES.tutorial),
   importV(MODULES.panelScroll),
   importV(MODULES.geojsonLevels),
-  importV(MODULES.mapRendering)
+  importV(MODULES.mapRendering),
+  importV(MODULES.nearbyNavigation)
 ]);
 
 
@@ -72,7 +75,8 @@ const { UI_STRINGS, applyStaticTextsForLang, getDisplayLabelForType } = i18n;
 
 const { createTutorial } = tutorial;
 const { createGeojsonLevelsController } = geojsonLevels;
-const { createBasemapLayer, createGeojsonRenderer, waitForBasemapReady } = mapRendering;
+const { createNearbyNavigator } = nearbyNavigation;
+const { createBasemapLayer, createGeojsonRenderer, waitForBasemapReady, applyBasemapTheme, createBasemapControl, validateBasemaps } = mapRendering;
 const { initPanelScrollProgress } = panelScroll;
 
 
@@ -126,6 +130,7 @@ const SUPPLEMENT_SUMMARY_ORDER = FILTERABLE_SUPPLEMENT_KEYS;
 /// === ÉTAT GLOBAL ===
 
 let map;
+let nearbyNavigator = null;
 let activeBasemap = null;
 let geojsonRenderer = null;
 let basemapControl = null;
@@ -1719,9 +1724,6 @@ function initHarmonizedShell() {
   const calendarStart = document.getElementById("title-calendar-start");
   const calendarEnd = document.getElementById("title-calendar-end");
   const clearBtn = document.getElementById("title-clear-filters");
-  const utilityMenu = document.getElementById("utility-menu");
-  const utilityToggle = document.getElementById("utility-menu-toggle");
-  const utilityPanel = document.getElementById("utility-menu-panel");
 
   const toggleTitle = () => {
     if (!titlePanel || !titleToggle) return;
@@ -1763,11 +1765,6 @@ function initHarmonizedShell() {
   });
   clearBtn?.addEventListener("click", () => clearTitleFilters({ resetZoom: false }));
 
-  utilityToggle?.addEventListener("click", () => {
-    const isOpen = utilityMenu?.classList.toggle("open");
-    if (utilityPanel) utilityPanel.hidden = !isOpen;
-    utilityToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  });
 
   document.getElementById("utility-events-toggle")?.addEventListener("click", () => setPanelExpanded("toggle"));
   document.getElementById("utility-regions-mode-toggle")?.addEventListener("click", () => setRegionsMode(!regionsModeActive));
@@ -1944,6 +1941,7 @@ function afficherEvenements({ renderGeography = true } = {}) {
   }
 
   syncTitleFilterControls();
+  nearbyNavigator?.refresh();
   updateFloatingSubtitle();
 }
 
@@ -2227,17 +2225,14 @@ function showLoadingError(error) {
 }
 
 function refreshBasemapControl() {
+  if (basemapControl) { map.removeControl(basemapControl); basemapControl = null; }
   if (!map || basemapEntries.length < 2) return;
-  if (basemapControl) map.removeControl(basemapControl);
-  const layers = Object.fromEntries(basemapEntries.map(({ config, layer }) => [
-    config.labels?.[currentLang] || config.labels?.fr || config.id, layer
-  ]));
-  basemapControl = L.control.layers(layers, null, { position: "bottomright" }).addTo(map);
+  basemapControl = createBasemapControl({ L, map, entries: basemapEntries, lang: currentLang });
 }
 
-function setTheme(mode) {
-  document.body.classList.toggle("theme-dark", mode === "dark");
-  document.body.classList.toggle("theme-light", mode === "light");
+function setTheme(fond) {
+  applyBasemapTheme(fond);
+  if (allEvents.length) updateBottomChart(true);
 }
 
 async function zoomToOblast(oblastName) {
@@ -2266,6 +2261,8 @@ async function zoomToOblast(oblastName) {
 /// === INIT MAP ===
 
 async function initMap() {
+  const initialBasemap = validateBasemaps(MAP_SETTINGS.fonds);
+  setTheme(initialBasemap);
   setLoadingProgress(10);
   currentLang = getInitialLang();
   applyStaticTextsForLang(currentLang, { tutorialNextLang: getNextTutorialLanguage(currentLang) });
@@ -2299,6 +2296,16 @@ async function initMap() {
 
 
   EventsRenderer.init({ leafletMap: map });
+  if (FEATURES.navigationProche?.enabled !== false) {
+    nearbyNavigator = createNearbyNavigator({
+      L, map, settings: FEATURES.navigationProche,
+      getClusterGroup: () => EventsRenderer.getClusterGroup(),
+      isEnabled: () => !regionsModeActive,
+      getLang: () => currentLang,
+      getStrings: () => UI_STRINGS[currentLang]?.ui?.navigationProche || {},
+      onNavigate: () => Playback.pause()
+    });
+  }
 
   OblastFilters.init({
     map,
@@ -2354,19 +2361,18 @@ async function initMap() {
   const fonds = Object.fromEntries(MAP_SETTINGS.fonds.map(fond => [fond.id, createBasemapLayer(fond, { L, settings: MAP_SETTINGS })]));
   basemapEntries = MAP_SETTINGS.fonds.map(config => ({ config, layer: fonds[config.id] }));
 
-  if (window.matchMedia("(prefers-color-scheme: light)").matches) setTheme("light");
 
   MAP_SETTINGS.fonds.forEach(fond => {
     const layer = fonds[fond.id];
     layer.on("add", () => {
       activeBasemap = layer;
       geojsonRenderer.refresh();
-      setTheme(fond.theme || "light");
+      setTheme(fond);
     });
     layer.on("remove", () => {
       if (activeBasemap === layer) {
         activeBasemap = null;
-        geojsonRenderer.refresh();
+        queueMicrotask(() => { if (!activeBasemap) geojsonRenderer.refresh(); });
       }
     });
   });
@@ -2435,6 +2441,7 @@ function onDomReady(fn) {
 
 let appBooted = false;
 onDomReady(() => {
+  initUtilityMenu();
   if (appBooted) return;
   appBooted = true;
   initHarmonizedShell();

@@ -144,7 +144,7 @@ export const EventsRenderer = (() => {
 
       if (coordsValid && attachToMap && clusterGroup) {
         const icon = createMarkerIcon(ev.type_violence);
-        marker = window.L.marker([ev.lat, ev.lng], { icon });
+        marker = window.L.marker([ev.lat, ev.lng], { icon, rsfNavigation: { iconUrl: getLegendIconUrl(ev.type_violence), label: ev.journaliste || "" } });
 
         marker.on("add", () => {
           const el = marker._icon?.querySelector(".marker-icon");

@@ -33,6 +33,13 @@ let zoomButtonTargetYear = null;
 let zoomButtonLang = "fr";
 
 
+
+function chartTheme() {
+  return document.body.classList.contains("theme-dark")
+    ? { background: "#101014", text: "#d9dbe2", strongText: "#f5f5f7", grid: "rgba(255,255,255,0.18)" }
+    : { background: "#fff", text: "#666", strongText: "#16161b", grid: "rgba(0,0,0,0.14)" };
+}
+
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 function getTimelineBucketUnit() {
@@ -704,7 +711,7 @@ function resizeCanvasToDisplaySize(canvas) {
 function drawTimelineWindowBackground(ctx, { buckets, padL, padT, plotW, plotH, windowStartTs, cursorTs, startOfDayUTC }) {
   if (!buckets?.length) return;
 
-  ctx.fillStyle = "rgba(255,255,255,0.96)";
+  ctx.fillStyle = chartTheme().background;
   ctx.fillRect(padL, padT, plotW, plotH);
 
   const { startTs: domainStartTs, endTs: domainEndTs } = getTimelineDomain(buckets);
@@ -813,8 +820,8 @@ function drawTimelineYearTicks(ctx, { padL, padT, plotW, plotH, domainStartTs, d
 
   ctx.save();
   ctx.font = "10px Electrolize, sans-serif";
-  ctx.fillStyle = "#666";
-  ctx.strokeStyle = "rgba(0,0,0,0.14)";
+  ctx.fillStyle = chartTheme().text;
+  ctx.strokeStyle = chartTheme().grid;
   ctx.lineWidth = 1;
   ctx.textBaseline = "top";
   ctx.textAlign = "center";
@@ -873,7 +880,7 @@ function drawStackedColumnChart({ canvas, days, seriesByType, cursorTs, windowSt
 
   if (!visibleBuckets.length || types.length === 0) {
     ctx.font = "12px Electrolize, sans-serif";
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = chartTheme().strongText;
     ctx.fillText(currentLang === "en" ? "No data" : "Aucune donnee", padL, padT + 16);
     hoverModel = null;
     return;
@@ -891,8 +898,8 @@ function drawStackedColumnChart({ canvas, days, seriesByType, cursorTs, windowSt
     startOfDayUTC
   });
 
-  ctx.strokeStyle = "rgba(0,0,0,0.08)";
-  ctx.fillStyle = "#666";
+  ctx.strokeStyle = chartTheme().grid;
+  ctx.fillStyle = chartTheme().text;
   ctx.font = "10px Electrolize, sans-serif";
   for (let i = 0; i <= 2; i++) {
     const yVal = Math.round((maxY * i) / 2);
