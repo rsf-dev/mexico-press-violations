@@ -27,6 +27,7 @@ const [
   dates,
   strings,
   security,
+  dataValidation,
   bottomChart,
   eventsRenderer,
   oblastFilters,
@@ -41,6 +42,7 @@ const [
   importV(MODULES.dates),
   importV(MODULES.strings),
   importV(MODULES.security),
+  importV(MODULES.data),
   importV(MODULES.bottomChart),
   importV(MODULES.eventsRenderer),
   importV(MODULES.oblastFilters),
@@ -64,7 +66,8 @@ const {
 } = dates;
 
 const { normalizeType } = strings;
-const { escapeHtml, getSafeHttpUrls } = security;
+const { escapeHtml, getSafeHttpUrl, getSafeHttpUrls } = security;
+const { DATA_LIMITS, fetchJson, validateEvents, validateGeoJson, parseCoordinate } = dataValidation;
 
 const { BottomChart } = bottomChart;
 const { EventsRenderer } = eventsRenderer;
@@ -105,11 +108,11 @@ const MAX_ZOOM = MAP_SETTINGS.zoomMaximum;
 const ENABLED_CATEGORIES = (REGLAGES.categories || []).filter(category => category.enabled !== false);
 const TYPE_COLORS = Object.fromEntries(ENABLED_CATEGORIES.map(category => [category.cle, category.couleur]));
 const TYPE_CONFIG = Object.fromEntries(ENABLED_CATEGORIES.map(category => [category.cle, { slug: category.slug, file: category.icone }]));
-const TYPE_MAP_TO_CANONICAL = Object.fromEntries(ENABLED_CATEGORIES.flatMap(category => [
+const TYPE_MAP_TO_CANONICAL = Object.assign(Object.create(null), Object.fromEntries(ENABLED_CATEGORIES.flatMap(category => [
   category.cle,
   ...Object.values(category.labels || {}),
   ...(category.valeursEntree || [])
-].filter(Boolean).map(value => [normalizeFilterValue(value), category.cle])));
+].filter(Boolean).map(value => [normalizeFilterValue(value), category.cle]))));
 const DEFAULT_EVENT_TYPE = REGLAGES.categorieParDefaut;
 const SUPPLEMENT_FILTERS = Object.fromEntries(SUPPLEMENT_SETTINGS.map(filter => [filter.id, {
   field: filter.field,
@@ -184,14 +187,15 @@ function setupCollapse({ btnId, bodyId, storageKey = null, defaultCollapsed = fa
 
   const load = () => {
     if (!storageKey) return defaultCollapsed;
-    const v = localStorage.getItem(storageKey);
-    if (v === null) return defaultCollapsed;
-    return v === "1";
+    try {
+      const v = localStorage.getItem(storageKey);
+      return v === null ? defaultCollapsed : v === "1";
+    } catch { return defaultCollapsed; }
   };
 
   const save = (isCollapsed) => {
     if (!storageKey) return;
-    localStorage.setItem(storageKey, isCollapsed ? "1" : "0");
+    try { localStorage.setItem(storageKey, isCollapsed ? "1" : "0"); } catch { /* Stockage désactivé dans certains contextes intégrés. */ }
   };
 
   const apply = (isCollapsed) => {
@@ -635,8 +639,11 @@ function createMarkerIcon(type) {
   const cfg = TYPE_CONFIG[type];
   if (!cfg) return L.icon({ iconUrl: DEFAULT_ICON_URL, iconSize: [24, 24] });
 
+  const element = document.createElement("div");
+  element.className = `marker-icon marker-${normalizeType(cfg.slug)}`;
+  element.style.backgroundImage = `url("${encodeURI(iconUrl(cfg.file)).replace(/"/g, "%22")}")`;
   return L.divIcon({
-    html: `<div class="marker-icon marker-${cfg.slug}" style="background-image:url('${iconUrl(cfg.file)}')"></div>`,
+    html: element,
     className: "",
     iconSize: [36, 36],
     popupAnchor: [0, -12]
@@ -783,9 +790,7 @@ async function loadOblastsGeojson() {
   if (regionsGeojsonData) return regionsGeojsonData;
   if (!regionsGeojsonPromise) {
     regionsGeojsonPromise = (async () => {
-      const resp = await fetch(withV(REGIONS_GEOJSON_URL));
-      if (!resp.ok) throw new Error(`GeoJSON ${REGIONS_GEOJSON_URL}: HTTP ${resp.status}`);
-      regionsGeojsonData = await resp.json();
+      regionsGeojsonData = validateGeoJson(await fetchJson(withV(REGIONS_GEOJSON_URL), { maxBytes: DATA_LIMITS.geojsonBytes }));
       return regionsGeojsonData;
     })().catch(error => {
       regionsGeojsonPromise = null;
@@ -1041,7 +1046,7 @@ function buildStackedCountsByGroup({ groupBy, onlyOblast = null, startTime = nul
     return getEventOblast(ev) || null;
   };
 
-  const counts = {};
+  const counts = Object.create(null);
   for (const ev of allEvents) {
     if (!eventMatchesSupplementFilters(ev)) continue;
     if (onlyOblast && getEventOblast(ev) !== onlyOblast) continue;
@@ -1055,7 +1060,7 @@ function buildStackedCountsByGroup({ groupBy, onlyOblast = null, startTime = nul
     if (!TYPE_CONFIG[type]) continue;
 
     if (!counts[g]) {
-      counts[g] = {};
+      counts[g] = Object.create(null);
       for (const cat of allCats) counts[g][cat] = 0;
     }
     counts[g][type] += 1;
@@ -1207,7 +1212,10 @@ function renderOverviewStackedChart(groupBy, { containerId = "country-chart-cont
   });
 
   if (!rows.length) {
-    container.innerHTML = `<p class="chart-placeholder">${ui?.chartNoEvents ?? "Aucune donnée"}</p>`;
+    const placeholder = document.createElement("p");
+    placeholder.className = "chart-placeholder";
+    placeholder.textContent = ui?.chartNoEvents ?? "Aucune donnée";
+    container.replaceChildren(placeholder);
     return;
   }
 
@@ -1882,7 +1890,10 @@ function applyConfiguredControls() {
       link.hidden = true;
       return;
     }
-    link.href = config.href;
+    const href = getSafeHttpUrl(config.href);
+    link.hidden = !href;
+    if (href) link.href = href;
+    else link.removeAttribute("href");
     const image = link.querySelector("img");
     if (image) image.src = withV(config.image);
   });
@@ -2081,8 +2092,7 @@ async function loadEventsForLang(lang) {
   if (dataByLang[lang]) return dataByLang[lang];
 
   const dataUrl = FILES.donnees[lang] || FILES.donnees[REGLAGES.projet.langueParDefaut];
-  const resp = await fetch(withV(dataUrl));
-  const data = await resp.json();
+  const data = validateEvents(await fetchJson(withV(dataUrl), { maxBytes: DATA_LIMITS.eventsBytes }), DATA_FIELDS);
 
   data.forEach((ev, index) => {
     const langSuffix = String(lang || "fr").toUpperCase();
@@ -2104,8 +2114,8 @@ async function loadEventsForLang(lang) {
 
     const lat = getFirstConfiguredValue(ev, "latitude");
     const lng = getFirstConfiguredValue(ev, "longitude");
-    if (lat !== undefined) ev.lat = Number(lat);
-    if (lng !== undefined) ev.lng = Number(lng);
+    ev.lat = parseCoordinate(lat, 90);
+    ev.lng = parseCoordinate(lng, 180);
 
     if (province) ev.Oblast = province;
 
@@ -2157,7 +2167,9 @@ function updateLangUrl(lang) {
   window.history.replaceState({}, "", url);
 }
 
+let languageChangeSequence = 0;
 async function setLanguage(lang, { updateUrl = true } = {}) {
+  const sequence = ++languageChangeSequence;
   const nextLang = normalizeLang(lang);
   if (nextLang === currentLang) {
     syncLanguageControls(nextLang);
@@ -2165,12 +2177,22 @@ async function setLanguage(lang, { updateUrl = true } = {}) {
     return;
   }
 
-  Playback.stop(true);
+  Playback.pause();
 
+  let nextEvents;
+  try {
+    nextEvents = await loadEventsForLang(nextLang);
+  } catch (error) {
+    console.error("Impossible de charger la langue demandée", error);
+    return;
+  }
+  // Des clics rapides peuvent terminer leurs requêtes dans un autre ordre.
+  if (sequence !== languageChangeSequence) return;
+  Playback.stop(true);
   currentLang = nextLang;
   geojsonLevelsController?.setLanguage(currentLang);
   refreshBasemapControl();
-  allEvents = await loadEventsForLang(nextLang);
+  allEvents = nextEvents;
 
   selectedTypes = new Set(allEvents.map(ev => ev.type_violence));
 
@@ -2284,9 +2306,7 @@ async function initMap() {
     defaultStyle: REGLAGES.stylesGeojson.defaut
   });
   geojsonLevelsController = createGeojsonLevelsController({ map, L, createGeojsonLayer: geojsonRenderer.createLayer, levels: FILES.geojson.niveauxAdministratifs, defaultStyle: REGLAGES.stylesGeojson?.niveauxAdministratifs, loadGeoJSON: async file => {
-    const response = await fetch(withV(file));
-    if (!response.ok) throw new Error(`GeoJSON ${file}: HTTP ${response.status}`);
-    return response.json();
+    return validateGeoJson(await fetchJson(withV(file), { maxBytes: DATA_LIMITS.geojsonBytes }));
   }, lang: currentLang });
   L.control.zoom({ position: "topleft" }).addTo(map);
 

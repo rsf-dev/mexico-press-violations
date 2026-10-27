@@ -30,6 +30,7 @@ export const REGLAGES = {
       dates: "./utils/dates.js",
       strings: "./utils/strings.js",
       security: "./utils/security.js",
+      data: "./utils/data.js",
       bottomChart: "./charts/bottomChart.js",
       eventsRenderer: "./events/eventsRenderer.js",
       panelScroll: "./ui/panelScroll.js",

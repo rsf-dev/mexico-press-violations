@@ -169,6 +169,9 @@ function setChartDaysRange(startTime, maxTime, startOfDayUTC, key, { preserveTim
 
   const startDay = startOfDayUTC(startTime);
   const maxDay = Math.max(startDay, startOfDayUTC(maxTime));
+  if (!Number.isFinite(startDay) || !Number.isFinite(maxDay) || maxDay - startDay > 100 * 366 * DAY_MS) {
+    throw new Error("Période de chronologie invalide ou supérieure à 100 ans.");
+  }
   const days = [];
   for (let d = startDay; d <= maxDay; d += 24 * 3600 * 1000) days.push(d);
 
@@ -1027,13 +1030,13 @@ function buildDailySeries(events, days, getEventTime, startOfDayUTC, typeConfigK
     }
     if (bucketIndex < 0) continue;
 
-    if (!byBucket.has(bucketIndex)) byBucket.set(bucketIndex, {});
+    if (!byBucket.has(bucketIndex)) byBucket.set(bucketIndex, Object.create(null));
     const bucket = byBucket.get(bucketIndex);
     const type = ev.type_violence;
     bucket[type] = (bucket[type] || 0) + 1;
   }
 
-  const series = {};
+  const series = Object.create(null);
   for (const type of typeConfigKeys) {
     series[type] = buckets.map((bucket, index) => byBucket.get(index)?.[type] || 0);
   }
