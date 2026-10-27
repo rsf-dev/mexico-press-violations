@@ -235,7 +235,7 @@ function getFirstConfiguredValue(event, fieldName) {
 }
 
 function getEventOblast(ev) {
-  return getFirstConfiguredValue(ev, "zone") || ev.pays || ev.Pays || null;
+  return ev.Oblast || getFirstConfiguredValue(ev, "zone") || ev.pays || ev.Pays || null;
 }
 
 function getEventGeojsonName(ev) {
@@ -2096,7 +2096,8 @@ async function loadEventsForLang(lang) {
 
   data.forEach((ev, index) => {
     const langSuffix = String(lang || "fr").toUpperCase();
-    const localizedZone = ev[`Province_${langSuffix}`] || ev[`province_${langSuffix}`] || getFirstConfiguredValue(ev, "zone");
+    const localizedZone = ev[`Province_${langSuffix}`] || ev[`province_${langSuffix}`] ||
+      ev.Province || ev.province || getFirstConfiguredValue(ev, "zone");
     const province = localizedZone || "";
     const description =
       ev[`description_${langSuffix}`] ||

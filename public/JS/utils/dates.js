@@ -7,14 +7,18 @@ export function parseDateFlexible(raw) {
   const s = String(raw).trim();
   if (!s) return null;
 
-  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2}))?$/);
   const local = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if (iso || local) {
     const dd = Number(iso ? iso[3] : local[1]);
     const mm = Number(iso ? iso[2] : local[2]);
     const yy = Number(iso ? iso[1] : local[3]);
     const d = new Date(Date.UTC(yy, mm - 1, dd, 0, 0, 0));
-    if (d.getUTCFullYear() === yy && d.getUTCMonth() === mm - 1 && d.getUTCDate() === dd) return d;
+    if (d.getUTCFullYear() !== yy || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) return null;
+    if (!iso?.[4]) return d;
+    if (Number(iso[4]) > 23 || Number(iso[5]) > 59 || Number(iso[6]) > 59) return null;
+    const timestamp = new Date(s);
+    return Number.isFinite(timestamp.getTime()) ? timestamp : null;
   }
   return null;
 }

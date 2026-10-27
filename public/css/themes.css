@@ -72,6 +72,11 @@
   color: var(--rsf-link);
 }
 
+/* Le badge garde un texte clair sur son fond sombre dans les deux thèmes. */
+#rsf-map-app #event-panel .event-gender-badge {
+  color: #fff;
+}
+
 #rsf-map-app :is(.map-title-panel, #event-panel, #country-panel, #bottom-chart-panel,
   #utility-menu-panel, .rsf-cartography-card, .credits-card, .tutorial-card)
   :is(button, select, input, .search-box, .lieu-dropdown, .language-toggle,
